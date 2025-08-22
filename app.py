@@ -5,8 +5,8 @@ import time
 API_URL = "https://dev-api-gateway.aesthatiq.com/mcp-service/ask"
 
 # Constant IDs
-USER_ID = "f1ebaf71-371d-492d-a29c-dace762ae2b2"
-SESSION_ID = "f1ebaf71-371d-492d-a29c-dace762ae2b2"
+USER_ID = "f2abb647-5043-49a5-9cd2-ae16a234fd11"
+SESSION_ID = "f2abb647-5043-49a5-9cd2-ae16a234fd11"
 
 # Function to send a single user input to the API
 def send_message(user_input):
@@ -67,5 +67,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
