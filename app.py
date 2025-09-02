@@ -4,23 +4,24 @@ import time
 
 API_URL = "https://dev-api-gateway.aesthatiq.com/mcp-service/ask"
 
-# Constant IDs
-USER_ID = "f2abb647-5043-49a5-9cd2-ae16a234fd11"
-SESSION_ID = "f2abb647-5043-49a5-9cd2-ae16a234fd11"
-
-# Function to send a single user input to the API
-def send_message(user_input):
+# Minimal function to send messages to the API
+def send_message(messages):
     try:
-        payload = {
-            "session_id": SESSION_ID,
-            "user_id": USER_ID,
-            "input": user_input
-        }
-        response = requests.post(API_URL, json=payload, verify=False, timeout=30)
+        payload = {"messages": messages}
+        response = requests.post(API_URL, json=payload, verify=True, timeout=30)
         if response.status_code == 200:
             data = response.json()
-            if isinstance(data, dict) and "reply" in data:
-                return data["reply"]
+            if isinstance(data, dict) and "messages" in data:
+                for msg in reversed(data["messages"]):
+                    if msg.get("role") == "assistant":
+                        return msg.get("content", "")
+                return "No assistant response found"
+            elif isinstance(data, dict) and "response" in data:
+                return data["response"]
+            elif isinstance(data, dict) and "content" in data:
+                return data["content"]
+            elif isinstance(data, str):
+                return data
             else:
                 return str(data)
         else:
@@ -30,30 +31,23 @@ def send_message(user_input):
 
 def main():
     st.set_page_config(page_title="AesthatiQ", page_icon="🤖")
-
-    # Store chat history locally in session_state
     if "messages" not in st.session_state:
         st.session_state.messages = [
             {"role": "assistant", "content": "Hello! How can I assist you with aesthetic or body-related services today?"}
         ]
 
-    # Display all previous messages
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # Handle new user input
     prompt = st.chat_input("Ask me anything about aesthetic services...")
     if prompt:
-        # Show user message
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
-
-        # Get assistant reply
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                response = send_message(prompt)
+                response = send_message(st.session_state.messages)
                 message_placeholder = st.empty()
                 full_response = ""
                 for chunk in response.split():
@@ -61,12 +55,7 @@ def main():
                     time.sleep(0.05)
                     message_placeholder.markdown(full_response + "▌")
                 message_placeholder.markdown(full_response)
-
-        # Store assistant reply
         st.session_state.messages.append({"role": "assistant", "content": response})
 
 if __name__ == "__main__":
-    main()
-
-
-
+    main() 
